@@ -1,0 +1,26 @@
+version: '3.4'
+
+# important after first installation:
+#   - as admin: create a custom oauth provider called "keycloak"
+#   - register normal user for hubot with desired name+password
+services:
+  rocketchat:
+    environment:
+      - Accounts_OAuth_Custom-Keycloak-button_label_text=Login via LINC
+      - Accounts_OAuth_Custom-Keycloak-button_label_color="#FFFFFF"
+      - Accounts_OAuth_Custom-Keycloak-button_color="#13679A"
+      - ADMIN_EMAIL=admin@example.org
+
+  # hubot, the popular chatbot
+  hubot:
+    environment:
+      - ROCKETCHAT_ROOM=GENERAL
+      - ROCKETCHAT_USER=hubot
+      - ROCKETCHAT_PASSWORD=hubot
+      - BOT_NAME=hubot
+      - LISTEN_ON_ALL_PUBLIC=true
+      # you can add more scripts as you'd like here, they need to be installable by npm
+      - EXTERNAL_SCRIPTS=hubot-help,hubot-seen,hubot-links,hubot-diagnostics
+    # this is used to expose the hubot port for notifications on the host on port 3001, e.g. for hubot-jenkins-notifier
+    # ports:
+    #  - 3001:8080

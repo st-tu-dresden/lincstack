@@ -1,0 +1,6 @@
+version: '3.4'
+services:
+  codi_app:
+    environment:
+      CMD_SAML_REQUIREDGROUPS: /Software Technology Group
+      #DEBUG: "true"

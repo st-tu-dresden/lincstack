@@ -1,0 +1,47 @@
+[[items]]
+title = "Taiga"
+image = "images/taiga-full.jpg"
+thumb = "images/taiga-thumb.png"
+alt = "Taiga"
+description = "Taiga is a project management application that can handle both simple and complex projects for startups, software developers, and other target teams. It tracks the progress of a project. With Taiga, you can use either Kanban or Scrum template, or both. Backlogs are shown as a running list of all features and User Stories added to the project. Taiga integrates video conferencing functions with the use of third party services from Talky.io and Appear.in. Group and private chat is done via HipChat."
+url = "https://task.example.org/"
+
+# [[items]]
+# title = "Keycloak"
+# image = "images/keycloak-full.png"
+# thumb = "images/keycloak-thumb.png"
+# alt = "Keycloak"
+# description = "Keycloak is a software product from JBoss to allow single sign-on and Identity Management. Keycloak is an open source Identity and Access Management solution aimed at modern applications and services. From a conceptual perspective the tools intent is to make it easy to secure applications and services with little to no coding."
+# url = "https://linc.example.org/auth/realms/linc/account"
+
+[[items]]
+title = "Watch our Ideas"
+image = "images/woi-full.jpg"
+thumb = "images/woi-thumb.png"
+alt = "Watch our Ideas"
+description = "On WatchOurIdeas, you put your ideas into practice. Show others how you see the world, develop your topics or issues alone or together with colleagues and/or friends and turn them into something big. Use the concept of open innovation to connect with new topics. Discover the essential and simplify the complex on WatchOurIdeas."
+url = "https://woi.example.org/"
+
+[[items]]
+title = "Fridolean"
+image = "images/fridolean-full.png"
+thumb = "images/fridolean-thumb.png"
+alt = "Fridolean"
+description = "With Fridolean you can create Business Model Canvases (BMC) and Value Proposition Canvases (VPC) alone or in a team. This platform supports real time synchronization and therefore maximizes the colaborative experience."
+url = "https://fridolean.example.org/"
+
+[[items]]
+title = "HackMD"
+image = "images/hackmd-full.png"
+thumb = "images/hackmd-thumb.png"
+alt = "HackMD"
+description = "HackMD is a realtime, multi-platform collaborative markdown note editor.  This means that you can write notes with other people on your desktop, tablet or even on the phone."
+url = "https://md.example.org/"
+
+[[items]]
+title = "RocketChat"
+image = "images/rocketchat-full.png"
+thumb = "images/rocketchat-thumb.png"
+alt = "RocketChat"
+description = "Rocket.Chat is free, unlimited and open source. Replace email, HipChat & Slack with the ultimate team chat software solution."
+url = "https://talk.example.org/"

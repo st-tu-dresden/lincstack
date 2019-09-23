@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  auth:
+    # environment:
+      # this guarantees that no json is applied
+      # - JSON=/dev/null
+      # - KEYCLOAK_LOGLEVEL=DEBUG

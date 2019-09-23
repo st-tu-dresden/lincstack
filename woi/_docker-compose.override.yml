@@ -1,0 +1,11 @@
+version: '3.4'
+
+services:
+  woi_frontend:
+    environment:
+      - REACT_APP_FOOTER_HTML=<div class='content_bindleft'><span class='footer_part'><a href='{{frontendUrl}}/static/innovation-challenge'>{{loc 'footer.innovation'}}</a></span><span class='footer_part'><a href='{{frontendUrl}}/static/about'>{{loc 'footer.about'}}</a></span> <span class='footer_part'><a href='{{frontendUrl}}/static/contact'>{{loc 'footer.contact'}}</a></span> <span class='footer_part'><a href='{{frontendUrl}}/static/woi-terms'>{{loc 'footer.terms_of_use'}}</a></span> </div>
+      - REACT_APP_DEFAULT_CATEGORIES=
+
+  woi:
+    environment:
+      - DEFAULT_GROUPS=

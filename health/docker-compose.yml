@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  checkup:
+    #build: health/
+    image: lincstack/checkup
+    volumes:
+      - ./checkup.json:/usr/share/nginx/html/checkup.json:ro
+      - ./config.js:/usr/share/nginx/html/js/config.js:ro
+      - checkup_data:/usr/share/nginx/html/data
+    environment:
+      - CHECK_INTERVALL=30m
+    restart: unless-stopped
+    ports:
+      - ${HEALTH_PORT}:80
+    labels:
+          - "traefik.backend=checkup"
+          - "traefik.routebackend.frontend.rule=Host:${LANDING_HOST};PathPrefixStrip:/health"
+          - "traefik.enable=true"
+    networks:
+      - linc
+
+volumes:
+   checkup_data:
+     name: ${INSTANCE}health_checkup_data
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc

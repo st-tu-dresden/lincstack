@@ -1,0 +1,72 @@
+version: '3.4'
+
+services:
+  auth:
+    image: lincstack/keycloak
+    links:
+      - "db_auth:mysql"
+    environment:
+      # watch out for the trailing / - it is important! some have it some not!
+      - PROXY_ADDRESS_FORWARDING=true
+      - KEYCLOAK_LOGLEVEL=ERROR
+      - DB_DATABASE=keycloak
+      - DB_USER=keycloak
+      - DB_PASSWORD=keycloak
+      #- MYSQL_USERNAME=keycloak
+      #- MYSQL_ROOT_PASSWORD=test
+      - MYSQL_PORT_3306_TCP_ADDR=mysql
+      - MYSQL_PORT_3306_TCP_PORT=3306
+        # defined by me
+      - KEYCLOAK_USER=${KC_ADMIN}
+      - KEYCLOAK_PASSWORD=${KC_PW}
+      - WOI_URL=${WOI_URL_FRONTEND}/
+      - FRIDOLEAN_URL=${FRIDOLEAN_URL_FRONTEND}/
+      - TAIGA_URL=${TAIGA_URL}
+      - MD_URL=${CODI_URL}
+      - PRIVACY_URL=${LANDING_URL}/privacy
+      - MAIL=${MAIL_SENDER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_SSL=${MAIL_SSL}
+      - MAIL_TLS=${MAIL_TLS}
+      - CONF_TERMS=false
+      - CONF_VERIFY_MAIL=false
+    restart: unless-stopped
+    ports:
+      - ${KC_PORT}:8080
+    labels:
+          - "traefik.backend=keycloak"
+          - "traefik.docker.network=${INSTANCE}_linc"
+          - "traefik.frontend.rule=Host:${KC_HOST};PathPrefix:/auth"
+          - "traefik.enable=true"
+    networks:
+      - linc
+      - keycloak_backend
+
+  db_auth:
+    # prior 4.4: I think this only affects new installations of keycloak since the bug is happening only in the migration steps
+    # https://issues.jboss.org/browse/KEYCLOAK-6411?attachmentOrder=desc&_sscc=t
+    image: "mariadb:10.3"
+    expose:
+      - 3306
+    environment:
+      - MYSQL_DATABASE=keycloak
+      - MYSQL_USER=keycloak
+      - MYSQL_PASSWORD=keycloak
+      - MYSQL_ROOT_PASSWORD=test
+    restart: unless-stopped
+    volumes:
+      - db:/var/lib/mysql
+    networks:
+      - keycloak_backend
+
+volumes:
+   db:
+     name: ${INSTANCE}keycloak_db
+
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc
+  keycloak_backend:
+    internal: true

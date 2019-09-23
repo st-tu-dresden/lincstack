@@ -1,0 +1,81 @@
+version: '3.4'
+services:
+
+  codi_data:
+    # Don't upgrade PostgreSQL by simply changing the version number
+    # You need to migrate the Database to the new PostgreSQL version
+    image: postgres:9.6-alpine
+    environment:
+      POSTGRES_USER: hackmd
+      POSTGRES_PASSWORD: hackmdpass
+      POSTGRES_DB: hackmd
+    restart: unless-stopped
+    volumes:
+      - data:/var/lib/postgresql/data
+    networks:
+      - codi_backend
+
+  codi_app:
+    image: hackmdio/hackmd:1.3.1
+    environment:
+      CMD_DOMAIN: ${CODI_HOST}
+      CMD_ALLOW_ORIGIN: ${CODI_HOST}
+      CMD_SAML_IDPSSOURL: ${KC_URL}/realms/${KC_REALM}/protocol/saml
+      CMD_SAML_ISSUER: ${CODI_URL}/auth/saml/metadata
+
+      CMD_PROTOCOL_USESSL: "true"
+      CMD_URL_ADDPORT: "false"
+      CMD_PORT: 9011
+      
+      CMD_SAML_IDPCERT: /idp-cert.pem
+      CMD_SAML_ATTRIBUTE_USERNAME: username
+      CMD_ALLOW_EMAIL_REGISTER: "false"
+      CMD_ALLOW_PDF_EXPORT: "true"
+      CMD_ALLOW_ANONYMOUS: "true"
+      CMD_ALLOW_ANONYMOUS_EDITS: "true"
+      CMD_ALLOW_FREEURL: "true"
+      CMD_USECDN: "false"
+      # freely: free for all
+      # editable: only registered can edit; guests can read
+      # limited: only registered can read & edit
+      # locked: registered can read
+      # private: nobody allowed
+      CMD_DEFAULT_PERMISSION: "limited"
+      CMD_EMAIL: "false"
+      CMD_IMAGE_UPLOAD_TYPE: filesystem
+      CMD_DB_URL: postgres://hackmd:hackmdpass@codi_data:5432/hackmd
+      
+      CMD_SESSION_SECRET: ${SECRET}
+      NODE_ENV: production
+    volumes:
+      - ./keycloak-cert.pem:/idp-cert.pem
+        # old installations are looking for /hackmd/public..
+        # new for /codimd/public..
+      - uploads:/hackmd/public/uploads
+      - uploads:/codimd/public/uploads
+    restart: unless-stopped
+    ports:
+      - ${CODI_PORT}:9011
+    labels:
+          - "traefik.backend=codi_app"
+          - "traefik.docker.network=${INSTANCE}_linc"
+          - "traefik.frontend.rule=Host:${CODI_HOST}"
+          - "traefik.enable=true"
+          - "traefik.port=9011"
+    networks:
+      - codi_backend
+      - linc
+
+
+volumes:
+  data:
+     name: ${INSTANCE}md_data
+  uploads:
+     name: ${INSTANCE}md_uploads
+
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc_codi
+  codi_backend:
+    internal: true

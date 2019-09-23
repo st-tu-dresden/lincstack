@@ -1,0 +1,23 @@
+version: '3.4'
+
+services:
+  landing:
+    image: lincstack/landing:main_2019_01_15_5bd4aea-3-g6869a39
+    environment:
+      - BASE_URL=https://${LANDING_HOST}
+    volumes:
+      - ./items.toml:/usr/share/blog/data/items.toml
+    restart: unless-stopped
+    ports:
+      - ${LANDING_PORT}:1313
+    labels:
+          - "traefik.backend=landing"
+          - "traefik.frontend.rule=Host:${LANDING_HOST}"
+          - "traefik.enable=true"
+    networks:
+      - linc
+
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc

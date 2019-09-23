@@ -1,0 +1,100 @@
+version: '3.4'
+
+services:
+  rocketchat:
+    image: rocketchat/rocket.chat:1.0.0-rc.2
+    volumes:
+      - uploads:/app/uploads
+    environment:
+      - PORT=3000
+      - ROOT_URL=${TALK_URL}
+      - ADMIN_USERNAME=${TALK_ADMIN}
+      - ADMIN_PASS=${TALK_PW}
+      - MONGO_URL=mongodb://rc_mongo:27017/rocketchat
+      - MONGO_OPLOG_URL=mongodb://rc_mongo:27017/local
+      - Accounts_OAuth_Custom-Keycloak=true
+      - Accounts_OAuth_Custom-Keycloak-token_path=/token
+      - Accounts_OAuth_Custom-Keycloak-token_sent_via=header
+      - Accounts_OAuth_Custom-Keycloak-identity_token_sent_via=header
+      - Accounts_OAuth_Custom-Keycloak-identity_path=/userinfo
+      - Accounts_OAuth_Custom-Keycloak-authorize_path=/auth
+      - Accounts_OAuth_Custom-Keycloak-scope=openid
+      - Accounts_OAuth_Custom-Keycloak-id=rocketchat
+      - Accounts_OAuth_Custom-Keycloak-login_style=redirect
+      - Accounts_OAuth_Custom-Keycloak-username_field=username
+      - Accounts_OAuth_Custom-Keycloak-merge_users=true
+      - Accounts_OAuth_Custom-Keycloak-url=${KC_URL}/realms/${KC_REALM}/protocol/openid-connect
+      - From_Email=${MAIL_SENDER}
+      - SMTP_Host=${MAIL_HOST}
+      - SMTP_Port=${MAIL_PORT}
+      - SMTP_Username=${MAIL_USER}
+      - SMTP_PASSWORD=${MAIL_PASS}
+    restart: unless-stopped
+    ports:
+      - ${TALK_PORT}:3000
+    networks:
+      - linc
+      - rc_default
+
+  rc_mongo:
+    image: mongo:3.2
+    volumes:
+     - database:/data/db
+     - configdb:/data/configdb
+    restart: unless-stopped
+    command: mongod --smallfiles --oplogSize 128 --replSet rs0 --storageEngine=mmapv1
+    networks:
+      - rc_default
+
+  # this container's job is just run the command to initialize the replica set.
+  # it will run the command and remove himself (it will not stay running)
+  rc_mongo-init-replica:
+    image: mongo:3.2
+    volumes:
+     - replica_init_database:/data/db
+     - replica_init_configdb:/data/configdb
+    command: 'mongo mongo/rocketchat --eval "rs.initiate({ _id: ''rs0'', members: [ { _id: 0, host: ''localhost:27017'' } ]})"'
+    networks:
+      - rc_default
+
+  # # hubot, the popular chatbot 
+  # hubot:
+  #   image: rocketchat/hubot-rocketchat:latest
+
+  #   environment:
+  #     - ROCKETCHAT_URL=rocketchat:3000
+  #     - ROCKETCHAT_ROOM=GENERAL
+  #     - ROCKETCHAT_USER=jarvis
+  #     - ROCKETCHAT_PASSWORD=jarvis123
+  #     - BOT_NAME=jarvis
+  #     - LISTEN_ON_ALL_PUBLIC=true
+  #     # you can add more scripts as you'd like here, they need to be installable by npm
+  #     - EXTERNAL_SCRIPTS=hubot-help,hubot-seen,hubot-links,hubot-diagnostics
+  #   volumes:
+  #     - hubot-scripts:/home/hubot/scripts
+  #   restart: unless-stopped
+  #   # this is used to expose the hubot port for notifications on the host on port 3001, e.g. for hubot-jenkins-notifier
+  #   # ports:
+  #   #  - 3001:8080
+  #   networks:
+  #     - linc
+
+volumes:
+  uploads:
+     name: ${INSTANCE}talk_uploads
+  database:
+     name: ${INSTANCE}talk_database
+  configdb:
+     name: ${INSTANCE}talk_configdb
+  replica_init_database:
+     name: ${INSTANCE}talk_init_database
+  replica_init_configdb:
+     name: ${INSTANCE}talk_init_configdb
+  hubot-scripts:
+     name: ${INSTANCE}talk_hubot_scripts
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc
+  rc_default:
+    external: false

@@ -1,0 +1,31 @@
+version: '3.4'
+
+services:
+  traefik:
+    image: traefik # The official Traefik docker image
+    # command: --api --docker # Enables the web UI and tells Traefik to listen to docker
+    restart: unless-stopped
+    ports:
+      - ${TRAEFIK_PORT_HTTP}:80     # The HTTP port
+      - ${TRAEFIK_PORT_HTTPS}:443   # The HTTPS port
+      - ${TRAEFIK_PORT_ADMIN}:8080 # The Web UI (enabled by --api)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock # So that Traefik can listen to the Docker events
+      - ./traefik.toml:/traefik.toml
+      - ./acme.json:/acme.json # if you want to use letsencrypt
+      - ./certs/:/certs/ # custom certificates
+    networks:
+      - linc
+        #
+        #  whoami:
+        #    image: containous/whoami # A container that exposes an API to show its IP address
+        #    labels:
+        #      - "traefik.frontend.rule=Host:who.localhost"
+        #    networks:
+        #      - web
+
+
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc

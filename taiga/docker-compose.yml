@@ -1,0 +1,102 @@
+version: '3.4'
+
+services:
+
+  backend:
+    image: lincstack/taiga:back_4.2.3-5
+    volumes:
+      - media:/taiga/back/media
+      - static:/taiga/back/static
+    environment:
+      - SSL=true
+      - DATABASE_NAME=taigadb
+      - DATABASE_HOST=taiga_database
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - EMAIL_ADDRESS=Taiga Project Management <${MAIL_SENDER}>
+      - EMAIL_HOST=${MAIL_HOST}
+      - EMAIL_TLS=true
+      - EMAIL_PORT=${MAIL_PORT}
+      - EMAIL_USER=${MAIL_USER}
+      - EMAIL_PASSWORD=${MAIL_PASS}
+      #- TRELLO_CLIENT_ID={SECRET:trello.client.id}
+      #- TRELLO_CLIENT_SECRET={SECRET:trello.client.secret}
+      #- GITHUB_CLIENT_ID={SECRET:github.client.id}
+      #- GITHUB_CLIENT_SECRET={SECRET:github.client.secret}
+      - RABBIT_URL=amqp://guest:guest@taiga_rabbit:5672//
+      - STARTUP_DELAY=3 # seconds waiting for database
+      - HOSTNAME=${TAIGA_DOMAIN}
+      - IDENTITY_PROVIDER_ID=${KC_URL}/realms/${KC_REALM}
+      - SECRET_KEY=${SECRET}
+      - IDENTITY_PROVIDER_BINDING_URL=${KC_URL}/realms/${KC_REALM}/protocol/saml
+    restart: unless-stopped
+    networks:
+      - taiga_backend
+
+  taiga_database:
+    image: postgres:9.6
+    environment:
+      - POSTGRES_DB=taigadb
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+    volumes:
+      - database:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - taiga_backend
+      - linc
+
+  taiga_rabbit:
+    image: rabbitmq:3
+    volumes:
+        - rabbitmq:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - taiga_backend
+
+
+  events:
+    image: lincstack/taiga:events_4.2.3-5
+    environment:
+      - SECRET_KEY=${SECRET}
+      - RABBIT_URL=amqp://guest:guest@taiga_rabbit:5672
+      - STARTUP_DELAY=2 # seconds waiting for rabbit
+    restart: unless-stopped
+    networks:
+      - taiga_backend
+
+  taiga_front:
+    image: lincstack/taiga:front_4.2.3-3
+    volumes:
+      - media:/taiga/back/media
+      - static:/taiga/back/static
+    environment:
+      - TAIGA_HOST=${TAIGA_DOMAIN}
+      - TAIGA_SCHEME=HTTPS
+      # TODO is HOSTNAME and SSL used?
+      - HOSTNAME=${TAIGA_DOMAIN}
+      - SSL=true
+      - ACCOUNT_URL=${KC_URL}/realms/${KC_REALM}/account
+      - STARTUP_DELAY=10 # seconds waiting for dependent services
+    restart: unless-stopped
+    ports:
+      - ${TAIGA_PORT_FRONTEND}:80
+    networks:
+      - linc
+      - taiga_backend
+
+volumes:
+  media:
+     name: ${INSTANCE}taiga_media
+  static:
+     name: ${INSTANCE}taiga_static
+  database:
+     name: ${INSTANCE}taiga_database
+  rabbitmq:
+     name: ${INSTANCE}taiga_rabbitmq
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc
+  taiga_backend:
+    internal: true

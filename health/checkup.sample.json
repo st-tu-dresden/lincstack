@@ -1,0 +1,50 @@
+{
+	"checkers": [
+	{
+		"type": "http",
+		"endpoint_name": "Landing Page",
+		"endpoint_url": "https://linc.example.org",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "Watch our Ideas",
+		"endpoint_url": "https://woi.example.org",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "Taiga",
+		"endpoint_url": "https://task.example.org",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "CodiMD",
+		"endpoint_url": "https://md.example.org",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "Login Page",
+		"endpoint_url": "https://linc.example.org/auth/",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "Fridolean",
+		"endpoint_url": "https://fridolean.example.org/",
+		"attempts": 5
+	},
+	{
+		"type": "http",
+		"endpoint_name": "Rocket.Chat",
+		"endpoint_url": "https://talk.example.org",
+		"attempts": 5
+	}
+	],
+	"storage": {
+		"provider": "fs",
+		"dir": "/usr/share/nginx/html/data"
+	}
+}

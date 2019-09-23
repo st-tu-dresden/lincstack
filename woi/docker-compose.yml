@@ -1,0 +1,100 @@
+version: '3.4'
+
+services:
+  woi_frontend:
+    image: lincstack/woi:frontend_2019_04_10
+    environment:
+      - PUBLIC_URL=${WOI_URL_FRONTEND}
+      - REACT_APP_KEYCLOAK=Y
+      - REACT_APP_BASE_URL=${WOI_URL_FRONTEND}
+      - REACT_APP_FRONTEND_URL=${WOI_URL_FRONTEND}
+      - REACT_APP_BACKEND_URL=${WOI_URL_BACKEND}
+      - REACT_APP_KEYCLOAK_URL=${KC_URL}
+      - REACT_APP_KC_URL=${KC_URL}
+      - REACT_APP_LINC=Y
+      - REACT_APP_KC_CLIENT=woi
+      - REACT_APP_KC_REALM=${KC_REALM}
+      - REACT_APP_FOOTER_HTML=<div class='content_bindleft'><span class='footer_part'><a href='{{frontendUrl}}/static/about'>{{loc 'footer.about'}}</a></span> <span class='footer_part'><a href='{{frontendUrl}}/static/contact'>{{loc 'footer.contact'}}</a></span> <span class='footer_part'><a href='{{frontendUrl}}/static/woi-terms'>{{loc 'footer.terms_of_use'}}</a></span> </div>
+      - REACT_APP_MD_URL=${CODI_URL}
+      - REACT_APP_LANDING_URL=${LANDING_URL}
+      - REACT_APP_DEFAULT_CATEGORIES=
+      - REACT_APP_TASK_URL=${TAIGA_URL}
+      - REACT_APP_COMMERCIAL=N
+    ports:
+      - ${WOI_PORT_FRONTEND}:80
+    restart: unless-stopped
+    labels:
+          - "traefik.backend=woi_frontend"
+          - "traefik.frontend.rule=Host:${WOI_HOST}"
+          - "traefik.enable=true"
+    networks:
+      - linc
+
+  woi:
+    image: lincstack/woi:backend_2019_04_10
+    environment:
+      - JBOSS_PASS=123
+      - JAVA_OPTS=-server -Xms128m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=256m -Djava.net.preferIPv4Stack=true -Djboss.modules.system.pkgs=org.jboss.byteman -Djava.awt.headless=true
+      - BASE_URL=${WOI_URL_FRONTEND}/
+      - FRONTEND_URL=${WOI_URL_FRONTEND}
+      - EMAIL_SENDER=${MAIL_SENDER}
+      - KEYCLOAK_ENABLED=Y
+      - KEYCLOAK_URL=http://auth:8080/auth
+      - KEYCLOAK_REALM=${KC_REALM}
+      - KEYCLOAK_CLIENTID=woi
+      - KEYCLOAK_ADMIN=${KC_ADMIN}
+      - KEYCLOAK_ADMIN_PW=${KC_PW}
+      - LINC_ENABLED=Y
+      - FRIDOLEAN_URL_BACKEND=${FRIDOLEAN_URL_BACKEND}
+       # why is it not working? fridolean_backend not found.. http://fridolean_backend/backend
+      - FRIDOLEAN_URL_FRONTEND=${FRIDOLEAN_URL_FRONTEND}
+      - DEFAULT_GROUPS=
+      - SECRET=${SECRET}
+    # standalone.xml
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_HOST=${MAIL_HOST}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_SSL=${MAIL_SSL}
+      - MAIL_TLS=${MAIL_TLS}
+      - PROXY_ADDRESS_FORWARDING=true
+      - REDIRECT_SOCKET=https
+    links:
+      - "woi_db:my_database"
+    ports:
+      - ${WOI_PORT_BACKEND}:8080
+    labels:
+          - "traefik.backend=woi_backend"
+          - "traefik.docker.network=${INSTANCE}_linc"
+          - "traefik.frontend.rule=Host:${WOI_HOST};PathPrefix:/rest"
+          - "traefik.enable=true"
+    networks:
+      - linc
+      - woi_backend
+    restart: unless-stopped
+
+  woi_db:
+    image: mariadb:10.3
+    expose:
+      - 3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=123
+      - MYSQL_DATABASE=woi
+    volumes:
+      - woi_db:/var/lib/mysql
+    restart: unless-stopped
+    networks:
+      - woi_backend
+
+volumes:
+   woi_db:
+     name: ${INSTANCE}woi_woi_db
+
+networks:
+  linc:
+    # external: created outside of docker-compose with "docker network create"
+    external:
+      name: ${INSTANCE}_linc
+  woi_backend:
+    # internal: no access to the outside - e.g., google.com
+    internal: true

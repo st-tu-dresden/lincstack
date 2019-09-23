@@ -1,0 +1,5 @@
+version: '3.4'
+
+# to avoid an empty example file
+services:
+  fridolean_frontend:

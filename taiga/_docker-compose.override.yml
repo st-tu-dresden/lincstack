@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  backend:
+    environment:
+      - "IDENTITY_PROVIDER_CERTIFICATE=content of rsa-cert"
+      - "SERVICE_PROVIDER_CERTIFICATE=content of https://linc.example.org/auth/admin/master/console/#/realms/linc/clients/<client-id>/saml/keys"
+      - "SERVICE_PROVIDER_KEY={SECRET:taiga.serviceprovider.key}"

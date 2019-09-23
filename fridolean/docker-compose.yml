@@ -1,0 +1,70 @@
+version: "3.4"
+
+services:
+
+  fridolean_frontend:
+    image: lincstack/fridolean:frontend_nightly
+    environment:
+      PUBLIC_URL: ${FRIDOLEAN_URL_FRONTEND}
+      REACT_APP_KEYCLOAK: Y
+      REACT_APP_KC_CLIENT: fridolean
+      REACT_APP_KC_REALM: ${KC_REALM}
+      REACT_APP_KC_URL: ${KC_URL}
+      REACT_APP_BACKEND_URL: ${FRIDOLEAN_URL_BACKEND}
+      REACT_APP_SOCKETIO_URL: ${FRIDOLEAN_URL_FRONTEND}
+    restart: unless-stopped
+    ports:
+      - ${FRIDOLEAN_PORT_FRONTEND}:80
+    labels:
+          - "traefik.backend=fridolean_frontend"
+          - "traefik.frontend.rule=Host:${FRIDOLEAN_HOST}"
+          - "traefik.enable=true"
+    networks:
+      - linc
+
+  fridolean_backend:
+    image: lincstack/fridolean:backend_nightly
+    #links:
+    #  - "fridolean_db:my_database"
+    environment:
+      MONGODB_URL: fridolean_db:27017/loginapp
+      CORS_DOMAIN: ${FRIDOLEAN_URL_FRONTEND}
+      KEYCLOAK_URL: http://auth:8080
+      #${KC_URL_WITHOUT_PATH}
+      SECRET: ${SECRET}
+      PORT: 3001
+    restart: unless-stopped
+    ports:
+      - ${FRIDOLEAN_PORT_BACKEND}:3001
+    labels:
+          - "traefik.backend=fridolean_backend"
+          - "traefik.docker.network=${INSTANCE}_linc"
+          - "traefik.routebackend.frontend.rule=Host:${FRIDOLEAN_HOST};PathPrefixStrip:/backend"
+          - "traefik.routewebsocket.frontend.rule=Host:${FRIDOLEAN_HOST};PathPrefix:/socket.io"
+          - "traefik.enable=true"
+    networks:
+      - linc
+      - fridolean_backend
+
+  fridolean_db:
+    image: mongo:3.6.1
+    volumes:
+        - db:/data/db
+        - configdb:/data/configdb
+    restart: unless-stopped
+    networks:
+      - fridolean_backend
+
+volumes:
+  db:
+     name: ${INSTANCE}fridolean_db
+  configdb:
+     name: ${INSTANCE}fridolean_configdb
+
+networks:
+  linc:
+    external:
+      name: ${INSTANCE}_linc
+  fridolean_backend:
+    # internal: no access to the outside - e.g., google.com
+    internal: true
